@@ -37,24 +37,29 @@ class ConfigFile:
         log.info("Reading config parameters from %s"%(self._filename,))
         config.read(self._filename)
         
+        # main parameters
+        self.add_grid = config.getboolean("main", "add_grid")
+        self.add_constellations = config.getboolean("main", "add_constellations")
+        self.add_neighbor_quadrants = config.getboolean("main", "add_neighbor_quadrants")
+        
         # Star parameters
         # star_count
-        self.star_count = config.getint("parameters", "star_count")
+        self.star_count = config.getint("star", "count")
         # star_color
-        self.star_color = Color(config.get("parameters", "star_color").strip())
+        self.star_color = Color(config.get("star", "color").strip())
         # star_size_distribution_power
-        self.star_size_distribution_power = config.getfloat("parameters", "star_size_distribution_power")
-        assert self.star_size_distribution_power >= 1.0, "star_size_distribution_power must be >= 1.0, not %i"%(self.star_size_distribution_power,)
+        self.star_size_distribution_power = config.getfloat("star", "size_distribution_power")
+        assert self.star_size_distribution_power >= 1.0, "star.size_distribution_power must be >= 1.0, not %i"%(self.star_size_distribution_power,)
         # star_size_random_count
-        self.star_size_random_count = config.getint("parameters", "star_size_random_count")
-        assert self.star_size_random_count >= 1, "star_size_random_count must be >= 1, not %i"%(self.star_size_distribution_power,)
+        self.star_size_random_count = config.getint("star", "size_random_count")
+        assert self.star_size_random_count >= 1, "star.size_random_count must be >= 1, not %i"%(self.star_size_distribution_power,)
         # star_size_range
-        self.star_size_range = [float(v.strip()) for v in config.get("parameters", "star_size_range").split(",")]
+        self.star_size_range = [float(v.strip()) for v in config.get("star", "size_range").split(",")]
         self.star_size_range.sort()
         self.star_size_range.sort()
-        assert len(self.star_size_range) == 2, "star_size_range must contain 2 items, not %i"%(len(self.star_size_range))
+        assert len(self.star_size_range) == 2, "star.size_range must contain 2 items, not %i"%(len(self.star_size_range))
         #star_random_seed
-        star_random_seed = config.get("parameters", "star_random_seed").strip().lower()
+        star_random_seed = config.get("star", "random_seed").strip().lower()
         if star_random_seed == "none":
             self.star_random_seed = None
         else:
@@ -62,24 +67,42 @@ class ConfigFile:
         
         # box parameters
         # box_size
-        self.box_size = [int(v.strip()) for v in config.get("parameters", "box_size").split(",")]
-        assert len(self.box_size) == 2, "box_size must contain 2 items, not %i"%(len(self.box_size))
+        self.box_size = [int(v.strip()) for v in config.get("box", "size").split(",")]
+        assert len(self.box_size) == 2, "box.size must contain 2 items, not %i"%(len(self.box_size))
         # box_stroke_width
-        self.box_stroke_width = config.getfloat("parameters", "box_stroke_width")
+        self.box_stroke_width = config.getfloat("box", "stroke_width")
         #box_stroke_color
-        self.box_stroke_color = Color(config.get("parameters", "box_stroke_color").strip())
+        self.box_stroke_color = Color(config.get("box", "stroke_color").strip())
         #box_fill_color
-        self.box_fill_color = Color(config.get("parameters", "box_fill_color").strip())
+        self.box_fill_color = Color(config.get("box", "fill_color").strip())
 
-        # grid parameters
-        # grid_stroke_width
-        self.grid_stroke_width = config.getfloat("parameters", "grid_stroke_width")
-        # grid_stroke_color
-        self.grid_stroke_color = Color(config.get("parameters", "grid_stroke_color").strip())
-        # grid_line_count_horizontal
-        self.grid_line_count_horizontal = config.getint("parameters", "grid_line_count_horizontal")
-        assert self.grid_line_count_horizontal >= 0, "grid_line_count_horizontal must be >= 0, not %i"%(self.grid_line_count_horizontal,)
-        # grid_line_count_vertical
-        self.grid_line_count_vertical = config.getint("parameters", "grid_line_count_vertical")
-        assert self.grid_line_count_vertical >= 0, "grid_line_count_vertical must be >= 0, not %i"%(self.grid_line_count_vertical,)
+        # constellation parameters
+        if self.add_constellations:
+            self.constellation_count = config.getint("constellation", "count")
+            self.constellation_star_count = [int(v.strip()) for v in config.get("constellation", "star_count").split(",")]
+            assert len(self.constellation_star_count) in (1,2), "constellation.star_count must contain 1 or 2 items, not %i"%(len(self.box_size))
+            #star_random_seed
+            constellation_random_seed = config.get("constellation", "random_seed").strip().lower()
+            if constellation_random_seed == "none":
+                self.constellation_random_seed = None
+            else:
+                self.constellation_random_seed = int(constellation_random_seed)
+            # constellation_stroke_width
+            self.constellation_stroke_width = config.getfloat("constellation", "stroke_width")
+            # constellation_stroke_color
+            self.constellation_stroke_color = Color(config.get("constellation", "stroke_color").strip())
+            
         
+        # grid parameters
+        if self.add_grid:
+            # grid_stroke_width
+            self.grid_stroke_width = config.getfloat("grid", "stroke_width")
+            # grid_stroke_color
+            self.grid_stroke_color = Color(config.get("grid", "stroke_color").strip())
+            # grid_line_count_horizontal
+            self.grid_line_count_horizontal = config.getint("grid", "line_count_horizontal")
+            assert self.grid_line_count_horizontal >= 0, "grid.line_count_horizontal must be >= 0, not %i"%(self.grid_line_count_horizontal,)
+            # grid_line_count_vertical
+            self.grid_line_count_vertical = config.getint("grid", "line_count_vertical")
+            assert self.grid_line_count_vertical >= 0, "grid.line_count_vertical must be >= 0, not %i"%(self.grid_line_count_vertical,)
+            
