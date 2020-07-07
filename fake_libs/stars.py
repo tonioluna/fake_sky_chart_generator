@@ -1,27 +1,10 @@
-from log_stuff import init_logger
+from .log_stuff import init_logger
 
 log = init_logger()
 
-class Quadrant:
-    def __init__(self, w, h, id):
-        self.w = w
-        self.h = h
-        self.id = id
-        self.stars = []
-    
-    def add_star(self, star):
-        self.stars.append(star)
-    
-    def adjust_coordinates(self, w, h):
-        return w + self.w, h + self.h
-    
 class Star:
     _id_next = 0
     _star_db = {}
-    
-    @classmethod
-    def get_star_by_id(cls, id):
-        return cls._star_db[id]
     
     def __init__(self, 
                  size = None, 
@@ -36,23 +19,27 @@ class Star:
         
         self.master_star = master_star
         self.is_master = master_star == None
+        self.quadrant = quadrant
+        self.quadrant.add_star(self)
         if not self.is_master:
-            self.quadrant = quadrant
             self.size     = self.master_star.size
-            self.w        = self.master_star.w + self.quadrant.w
-            self.h        = self.master_star.h + self.quadrant.h
+            self.w        = self.master_star.base_w + self.quadrant.w
+            self.h        = self.master_star.base_h + self.quadrant.h
             self.color    = self.master_star.color
             self.childs   = None
             self.master_star.add_child(self)
-            self.quadrant.add_star(self)
         else:
             self.size     = size
-            self.w        = w
-            self.h        = h
+            self.w        = w + (0 if self.quadrant == None else self.quadrant.w)
+            self.h        = h + (0 if self.quadrant == None else self.quadrant.h)
+            self.base_w   = w
+            self.base_h   = h
             self.color    = color
             self.childs   = []
-            self.quadrant = None
         self.taken = False
+        
+    def get_rel_quadrant_to_other_star(self, other_star):
+        return (self.quadrant.x - other_star.quadrant.x, self.quadrant.y - other_star.quadrant.y)
         
     def __str__(self):
         return "Star %i (%s, %s) at %i,%i, size %.3f"%(self.id, 
@@ -61,6 +48,13 @@ class Star:
                                                  self.w,
                                                  self.h, 
                                                  self.size)
+    def get_peers(self):
+        if self.is_master:
+            peers = [self]
+            peers.extend(self.childs)
+        else:
+            peers = self.master_star.get_peers()
+        return peers
         
     def add_child(self, child):
         assert self.is_master

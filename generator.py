@@ -3,9 +3,9 @@ import os
 import traceback
 import svgwrite
 from svgwrite import cm, mm   
-import config_file
-from log_stuff import init_logger
-from svg_support import generate_chart
+from fake_libs.config_file import ConfigFile
+from fake_libs.log_stuff import init_logger
+from fake_libs.charts import generate_chart
 
 log = init_logger()
 
@@ -25,7 +25,7 @@ def main():
         
         assert os.path.isfile(config_filename), "Config file does not exist: %s"%(config_filename,)
         
-        config = config_file.ConfigFile(config_filename)
+        config = ConfigFile(config_filename)
         
         generate_chart("chart.svg", config)
         

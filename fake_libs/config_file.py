@@ -1,7 +1,9 @@
 import os
 import configparser
 import re
-from log_stuff import init_logger
+import collections
+from .log_stuff import init_logger
+from .constellations import KNOWN_ALGORITHMS
 
 log = init_logger()
 
@@ -11,6 +13,8 @@ _known_colors = (COLOR_STARS_COMMON,
 _re_rgb_color = re.compile("^#(?P<red>[0-9a-fA-F]{2})"
                              "(?P<green>[0-9a-fA-F]{2})"
                              "(?P<blue>[0-9a-fA-F]{2})?")
+
+_BoxSize = collections.namedtuple("BoxSize", ("width", "height"))
 
 class Color:
     def __init__(self, color_txt):
@@ -67,8 +71,9 @@ class ConfigFile:
         
         # box parameters
         # box_size
-        self.box_size = [int(v.strip()) for v in config.get("box", "size").split(",")]
-        assert len(self.box_size) == 2, "box.size must contain 2 items, not %i"%(len(self.box_size))
+        box_size = [int(v.strip()) for v in config.get("box", "size").split(",")]
+        assert len(box_size) == 2, "box.size must contain 2 items, not %i"%(len(box_size))
+        self.box_size = _BoxSize(*box_size)
         # box_stroke_width
         self.box_stroke_width = config.getfloat("box", "stroke_width")
         #box_stroke_color
@@ -91,8 +96,10 @@ class ConfigFile:
             self.constellation_stroke_width = config.getfloat("constellation", "stroke_width")
             # constellation_stroke_color
             self.constellation_stroke_color = Color(config.get("constellation", "stroke_color").strip())
+            # algorithm
+            self.constellation_algorithm = config.get("constellation", "algorithm").strip()
+            assert self.constellation_algorithm in KNOWN_ALGORITHMS, "Invalid value for constellation.algorithm: %s. Valid: %s"%(self.constellation_algorithm, ", ".join(KNOWN_ALGORITHMS))
             
-        
         # grid parameters
         if self.add_grid:
             # grid_stroke_width
