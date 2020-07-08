@@ -27,8 +27,7 @@ def main():
         
         config = ConfigFile(config_filename)
         
-        generate_chart("chart.svg", config)
-        
+        generate_chart("chart.%s.svg"%(os.path.splitext(os.path.basename(config_filename))[0], ), config)
     
     except Exception as ex:
         log.fatal("Caught top level error: %s"%(ex,))

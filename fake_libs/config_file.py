@@ -2,35 +2,67 @@ import os
 import configparser
 import re
 import collections
+import random
 from .log_stuff import init_logger
 from .constellations import KNOWN_ALGORITHMS
 
 log = init_logger()
 
-COLOR_STARS_COMMON = "stars_common"
-_known_colors = (COLOR_STARS_COMMON,
+COLOR_RANDOM_COLOR_INDEX = "random_color_index"
+_known_colors = (COLOR_RANDOM_COLOR_INDEX,
                 )
 _re_rgb_color = re.compile("^#(?P<red>[0-9a-fA-F]{2})"
                              "(?P<green>[0-9a-fA-F]{2})"
-                             "(?P<blue>[0-9a-fA-F]{2})?")
+                             "(?P<blue>[0-9a-fA-F]{2})$")
 
 _BoxSize = collections.namedtuple("BoxSize", ("width", "height"))
 
 class Color:
     def __init__(self, color_txt):
         self._color_txt = color_txt
-        m = _re_rgb_color.match(self._color_txt)
-        if m != None:
-            self.is_rgb = True
-            self.hex_value = self._color_txt.upper()
-            self.red   = int(m.groupdict()["red"]  , 16) 
-            self.green = int(m.groupdict()["green"], 16)
-            self.blue  = int(m.groupdict()["blue"] , 16)
-        else:
-            assert self._color_txt in _known_colors, "Invalid color: %s"%(self._color_txt,)
-            self.is_rgb = False
+        if self._color_txt in _known_colors:
+            self.has_rgb = False
             self.color_name = self._color_txt
-                             
+        else:
+            self.set_rgb_val(self._color_txt)
+    
+    def set_rgb_val(self, rgb_str_hex):
+        m = _re_rgb_color.match(rgb_str_hex)
+        
+        assert m != None, "Invalid star color: %s"%(rgb_str_hex,)
+        
+        self.has_rgb = True
+        self._hex_value = rgb_str_hex.upper()
+        self.red   = int(m.groupdict()["red"]  , 16) 
+        self.green = int(m.groupdict()["green"], 16)
+        self.blue  = int(m.groupdict()["blue"] , 16)
+    
+    def get_hex_value(self):
+        if self.has_rgb:
+            return self._hex_value
+        raise Exception("No hex value defined for color %s"%(repr(self.color_name), ))
+    
+    def clone(self):
+        new_color = Color(self._color_txt)
+        if self.has_rgb:
+            new_color.has_rgb = True
+            new_color._hex_value = self._hex_value
+        return new_color
+             
+class Font:
+    def __init__(self, config, alias = None, section = None):
+        assert (alias == None and section != None) or (alias != None and section == None)
+        if alias != None:
+            assert alias.startswith("@")
+            section = alias[1:]
+        assert section.startswith("font_"), "font sections must start with 'font_' (%s)"%(section, )
+        assert config.has_section(section), "font section %s does not exist: %s"%(section, )
+         
+        self.color = Color(config.get(section, "color").strip())
+        self.font_family = config.get(section, "font_family").strip()
+        self.size = config.getint(section, "size")
+        
+             
 class ConfigFile:
     def __init__(self, filename):
         self._filename = filename
@@ -65,7 +97,8 @@ class ConfigFile:
         #star_random_seed
         star_random_seed = config.get("star", "random_seed").strip().lower()
         if star_random_seed == "none":
-            self.star_random_seed = None
+            self.star_random_seed = random.randint(0, 1000000)
+            log.info("Setting star_random_seed = %i"%(self.star_random_seed))
         else:
             self.star_random_seed = int(star_random_seed)
         
@@ -89,7 +122,8 @@ class ConfigFile:
             #star_random_seed
             constellation_random_seed = config.get("constellation", "random_seed").strip().lower()
             if constellation_random_seed == "none":
-                self.constellation_random_seed = None
+                self.constellation_random_seed = random.randint(0, 1000000)
+                log.info("Setting constellation_random_seed = %i"%(self.constellation_random_seed))
             else:
                 self.constellation_random_seed = int(constellation_random_seed)
             # constellation_stroke_width
@@ -99,6 +133,16 @@ class ConfigFile:
             # algorithm
             self.constellation_algorithm = config.get("constellation", "algorithm").strip()
             assert self.constellation_algorithm in KNOWN_ALGORITHMS, "Invalid value for constellation.algorithm: %s. Valid: %s"%(self.constellation_algorithm, ", ".join(KNOWN_ALGORITHMS))
+            
+            self.constellation_name_enable = config.getboolean("constellation", "name_enable")
+            if self.constellation_name_enable:
+                constellation_name_random_seed = config.get("constellation", "name_random_seed").strip().lower()
+                if constellation_name_random_seed == "none":
+                    self.constellation_name_random_seed = random.randint(0, 1000000)
+                    log.info("Setting constellation_name_random_seed = %i"%(self.constellation_name_random_seed))
+                else:
+                    self.constellation_name_random_seed = int(constellation_name_random_seed)
+                self.constellation_name_font = Font(config, alias = config.get("constellation", "name_font"))
             
         # grid parameters
         if self.add_grid:

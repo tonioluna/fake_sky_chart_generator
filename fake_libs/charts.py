@@ -55,7 +55,7 @@ def _add_shared_constellations(dwg, config, master_stars, quadrants):
     constellations = get_constellations(config, master_stars, quadrants)
     
     constellations_dwg = dwg.add(dwg.g(id='constellations', 
-                                       stroke=config.constellation_stroke_color.hex_value, 
+                                       stroke=config.constellation_stroke_color.get_hex_value(), 
                                        stroke_width = config.constellation_stroke_width,
                                        fill = "none"))
     
@@ -68,6 +68,22 @@ def _add_shared_constellations(dwg, config, master_stars, quadrants):
         
         # Finally, make a polygon with the chosen stars
         constellations_dwg.add(dwg.polyline(points = const_points))
+        
+        const_names = dwg.add(dwg.g(id='constellation_names', 
+                                    stroke='none',
+                                    fill=config.constellation_name_font.color.get_hex_value(),
+                                    font_size=config.constellation_name_font.size*pt,
+                                    font_family=config.constellation_name_font.font_family))
+        
+        log.warning("Constellation name groups are not working!")
+        
+        if config.constellation_name_enable:
+            w, h = constellation.get_mean_position()
+            const_names.add(dwg.text(constellation.name,
+                                     insert=(w*pt, h*pt),
+                                     )
+        )
+        
     
 def _get_chart(dwg, config, quadrant = None, master_stars = None):
     #assert quadrant == None or master_stars != None
@@ -77,8 +93,8 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
     
     # out box
     out_box = dwg.add(dwg.g(id='out_box', 
-                            stroke=config.box_stroke_color.hex_value, 
-                            fill=config.box_fill_color.hex_value, 
+                            stroke=config.box_stroke_color.get_hex_value(), 
+                            fill=config.box_fill_color.get_hex_value(), 
                             stroke_width = config.box_stroke_width))
     out_box.add(dwg.polygon(points=[((0 + q_w)*pt,         (0 + q_h)*pt), 
                                     ((0 + q_w)*pt,         (config.box_size.height + q_h)*pt),
@@ -88,7 +104,7 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
     # grid
     if config.add_grid and (config.grid_line_count_horizontal != 0 or config.grid_line_count_vertical != 0):
         grid = dwg.add(dwg.g(id='grid', 
-                             stroke=config.grid_stroke_color.hex_value,
+                             stroke=config.grid_stroke_color.get_hex_value(),
                              stroke_width = config.grid_stroke_width))
         # Horizontal lines
         sep = config.box_size.height / (1 + config.grid_line_count_vertical)
@@ -114,24 +130,26 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
             r = 1
             for j in range(0, config.star_size_random_count): r *= random.random()
             star_size = (r**config.star_size_distribution_power) * size_range + min_size
-            color = config.star_color.hex_value
             
-            w = adj_w = random.random()*config.box_size.width*pt
-            h = adj_h = random.random()*config.box_size.height*pt
+            w = random.random()*config.box_size.width*pt
+            h = random.random()*config.box_size.height*pt
             
-            if quadrant != None:
-                adj_w, adj_h = quadrant.adjust_coordinates(w, h)
-     
             star = Star(size = star_size,
                         w = w, 
                         h = h,
-                        color = color,
+                        color = config.star_color.clone(),
                         quadrant = quadrant)
+            
             generated_stars.append(star)
             
-            circle = dwg.circle(center = (adj_w, adj_h), 
-                                r = star_size*pt, 
-                                fill = color)
+        # Split the process in two loops to keep the random behavior for the same seed when random colors are enabled            
+        for star in generated_stars:
+            if config.star_color.color_name == config_file.COLOR_RANDOM_COLOR_INDEX:
+                star.set_color_index(_get_random_color_index())
+
+            circle = dwg.circle(center = (star.w, star.h), 
+                                r = star.size*pt, 
+                                fill = star.color.get_hex_value())
             stars_group.add(circle)
     else:
         log.info("Writting %i stars to quadrant %s"%(len(master_stars), quadrant))
@@ -148,9 +166,12 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
             
         
             circle = dwg.circle(center = (child_star.w, child_star.h), 
-                                r = master_star.size*pt, 
-                                fill = "#FF0000")
+                                r = child_star.size*pt, 
+                                fill = child_star.color.get_hex_value())
             stars_group.add(circle)
             
     return generated_stars
     
+def _get_random_color_index():
+    # ci <-0.4,+2.0> 
+    return random.random() * 2.4 - 0.4
