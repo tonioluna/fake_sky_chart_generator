@@ -2,7 +2,27 @@ import os
 import sys
 import logging
 import time
+import colorama
 
+colorama.init()
+    
+class LoggerWrapper:
+    
+    def __init__(self, parent_logger):
+        self._parent_logger = parent_logger
+
+    def __getattr__(self, key):
+        if key == "debug":
+            sys.stdout.write(colorama.Fore.CYAN)
+        elif key == "warning":
+            sys.stdout.write(colorama.Fore.YELLOW)
+        elif key in ("error", "fatal"):
+            sys.stdout.write(colorama.Fore.RED)
+        else:
+            sys.stdout.write(colorama.Fore.RESET)
+        
+        return getattr(self._parent_logger, key)
+        
 def init_logger():
     _me = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     
@@ -27,4 +47,7 @@ def init_logger():
         
         log.addHandler(ch)
         log.addHandler(fh)
+    
+    log = LoggerWrapper(log)
+    
     return log

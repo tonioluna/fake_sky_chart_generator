@@ -10,7 +10,7 @@ from fake_libs.charts import generate_chart
 log = init_logger()
 
 _my_path = os.path.abspath(os.path.dirname(sys.argv[0]))
-DEFAULT_CFG_FILE = os.path.join(_my_path, "default_config.ini")
+DEFAULT_CFG_FILE = os.path.join(_my_path, "charts", "default_config.ini")
 
 def main():
     try:

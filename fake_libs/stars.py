@@ -1,4 +1,6 @@
+import random
 from .log_stuff import init_logger
+from .color import COLOR_RANDOM_COLOR_INDEX
 
 log = init_logger()
 
@@ -88,7 +90,7 @@ class Star:
                                  int(g*255),
                                  int(b*255))
         
-        log.debug("Setting color index for star %s to %.2f resulting in %s")
+        #log.debug("Setting color index for star %s to %.2f resulting in %s")
         
         self.color.set_rgb_val(color)
           
@@ -126,3 +128,42 @@ class Star:
         else:
             self.master_star.take()
             
+def get_random_stars(min_size, 
+                     max_size, 
+                     max_w, 
+                     max_h, 
+                     star_count,
+                     quadrant = None,
+                     size_random_count = 0,
+                     size_distribution_power = 1,
+                     color = None):
+                     
+                     
+    generated_stars = []
+    size_range = max_size - min_size
+    for i in range(0, star_count):
+        # star size
+        r = 1
+        for j in range(0, size_random_count): r *= random.random()
+        star_size = (r**size_distribution_power) * size_range + min_size
+        
+        w = random.random()*max_w
+        h = random.random()*max_h
+        
+        star = Star(size = star_size,
+                    w = w, 
+                    h = h,
+                    color = color.clone() if color != None else "#FFFFFF",
+                    quadrant = quadrant)
+        
+        generated_stars.append(star)
+    
+    # Split the process in two loops to keep the random behavior for the same seed when random colors are enabled            
+    for star in generated_stars:
+        if star.color.color_name == COLOR_RANDOM_COLOR_INDEX:
+            star.set_color_index(_get_random_color_index())
+    return generated_stars
+            
+def _get_random_color_index():
+    # ci <-0.4,+2.0> 
+    return random.random() * 2.4 - 0.4

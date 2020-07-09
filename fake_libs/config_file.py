@@ -1,53 +1,15 @@
 import os
 import configparser
-import re
 import collections
 import random
 from .log_stuff import init_logger
 from .constellations import KNOWN_ALGORITHMS
+from .color import Color, COLOR_RANDOM_COLOR_INDEX
+import svgwrite
 
 log = init_logger()
 
-COLOR_RANDOM_COLOR_INDEX = "random_color_index"
-_known_colors = (COLOR_RANDOM_COLOR_INDEX,
-                )
-_re_rgb_color = re.compile("^#(?P<red>[0-9a-fA-F]{2})"
-                             "(?P<green>[0-9a-fA-F]{2})"
-                             "(?P<blue>[0-9a-fA-F]{2})$")
-
 _BoxSize = collections.namedtuple("BoxSize", ("width", "height"))
-
-class Color:
-    def __init__(self, color_txt):
-        self._color_txt = color_txt
-        if self._color_txt in _known_colors:
-            self.has_rgb = False
-            self.color_name = self._color_txt
-        else:
-            self.set_rgb_val(self._color_txt)
-    
-    def set_rgb_val(self, rgb_str_hex):
-        m = _re_rgb_color.match(rgb_str_hex)
-        
-        assert m != None, "Invalid star color: %s"%(rgb_str_hex,)
-        
-        self.has_rgb = True
-        self._hex_value = rgb_str_hex.upper()
-        self.red   = int(m.groupdict()["red"]  , 16) 
-        self.green = int(m.groupdict()["green"], 16)
-        self.blue  = int(m.groupdict()["blue"] , 16)
-    
-    def get_hex_value(self):
-        if self.has_rgb:
-            return self._hex_value
-        raise Exception("No hex value defined for color %s"%(repr(self.color_name), ))
-    
-    def clone(self):
-        new_color = Color(self._color_txt)
-        if self.has_rgb:
-            new_color.has_rgb = True
-            new_color._hex_value = self._hex_value
-        return new_color
              
 class Font:
     def __init__(self, config, alias = None, section = None):
@@ -113,7 +75,7 @@ class ConfigFile:
         self.box_stroke_color = Color(config.get("box", "stroke_color").strip())
         #box_fill_color
         self.box_fill_color = Color(config.get("box", "fill_color").strip())
-
+        
         # constellation parameters
         if self.add_constellations:
             self.constellation_count = config.getint("constellation", "count")

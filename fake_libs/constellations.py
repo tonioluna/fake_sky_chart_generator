@@ -126,6 +126,8 @@ def get_constellations(config, master_stars, quadrants):
 
     # name constellations
     const_names = ConstellationNames()
+    if config.constellation_name_random_seed != None:
+        random.seed(config.constellation_name_random_seed)
     for const in constellations:
         const.name = const_names.get_random_constellation_name()
 
@@ -161,7 +163,7 @@ def _get_constellations_alg_basic(config, sorted_master_stars, quadrants):
     constellations = []
     # fun beggins here
     for const_num in range(0, config.constellation_count):
-        log.debug("Doing constellation %i"%(const_num,))
+        log.info("Doing constellation %i with %i stars"%(const_num, star_counts[const_num]))
         
         # pick a random star to start with
         base_star = _get_random_star(selected_all_stars, must_be_master = True)
