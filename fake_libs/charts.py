@@ -131,15 +131,15 @@ def _add_globular_clusters(dwg, config, central_quadrant):
         cluster_group.add(dwg.circle(center=(globular_cluster.w*pt, globular_cluster.h*pt), 
                                      r=globular_cluster.size*0.75*pt))
         lv_w = globular_cluster.w
-        lv_h_start = globular_cluster.h - globular_cluster.size*0.5
-        lv_h_end   = globular_cluster.h + globular_cluster.size*0.5
+        lv_h_start = globular_cluster.h - globular_cluster.size
+        lv_h_end   = globular_cluster.h + globular_cluster.size
         
         lh_h = globular_cluster.h
-        lh_w_start = globular_cluster.w - globular_cluster.size*0.5
-        lh_w_end   = globular_cluster.w + globular_cluster.size*0.5
+        lh_w_start = globular_cluster.w - globular_cluster.size
+        lh_w_end   = globular_cluster.w + globular_cluster.size
         
-        cluster_group.add(dwg.line(start=(lv_w, lv_h_start), end=(lv_w, lv_h_end)))
-        cluster_group.add(dwg.line(start=(lh_w_start, lh_h), end=(lh_w_end, lh_h)))
+        cluster_group.add(dwg.line(start=(lv_w*pt, lv_h_start*pt), end=(lv_w*pt, lv_h_end*pt)))
+        cluster_group.add(dwg.line(start=(lh_w_start*pt, lh_h*pt), end=(lh_w_end*pt, lh_h*pt)))
         
     return globular_clusters
     
