@@ -39,7 +39,7 @@ class Constellation:
         
     def get_copies(self):
         # need to find out how many extra quadrants are added
-        log.info("Getting constellation copies for constellation %s"%(self.name))
+        log.info("Getting constellation copies for constellation %s (%s)"%(self.name, self.id))
         
         master_star = None
         # get any master star
@@ -144,12 +144,11 @@ def _get_constellations_alg_basic(config, sorted_master_stars, quadrants):
         
     # Determine the number of stars to use per constellation
     star_counts = []
-    for i in range(0, config.constellation_count):
-        if len(config.constellation_star_count) == 1:
-            star_counts.append(config.constellation_star_count[0])
-        else:
-            star_count = random.randint(config.constellation_star_count[0], config.constellation_star_count[1])
-            star_counts.append(star_count)
+    const_count = random.randint(config.constellation_count_range[0], config.constellation_count_range[1])
+    log.debug("Constellation count: %s"%(const_count,))
+    for i in range(0, const_count):
+        star_count = random.randint(config.constellation_star_count_range[0], config.constellation_star_count_range[1])
+        star_counts.append(star_count)
     
     total_star_count = sum(star_counts)
     selected_master_stars = sorted_master_stars[-total_star_count:]
@@ -162,7 +161,7 @@ def _get_constellations_alg_basic(config, sorted_master_stars, quadrants):
     
     constellations = []
     # fun beggins here
-    for const_num in range(0, config.constellation_count):
+    for const_num in range(0, const_count):
         log.info("Doing constellation %i with %i stars"%(const_num, star_counts[const_num]))
         
         # pick a random star to start with
@@ -195,13 +194,12 @@ def _get_constellations_alg_median_neighbors(config, sorted_master_stars, quadra
         
     # Determine the number of stars to use per constellation
     star_counts = []
-    for i in range(0, config.constellation_count):
-        if len(config.constellation_star_count) == 1:
-            star_counts.append(config.constellation_star_count[0])
-        else:
-            star_count = random.randint(config.constellation_star_count[0], config.constellation_star_count[1])
-            star_counts.append(star_count)
-    
+    const_count = random.randint(config.constellation_count_range[0], config.constellation_count_range[1])
+    log.debug("Constellation count: %s"%(const_count,))
+    for i in range(0, const_count):
+        star_count = random.randint(config.constellation_star_count_range[0], config.constellation_star_count_range[1])
+        star_counts.append(star_count)
+
     total_star_count = sum(star_counts)
     selected_master_stars = sorted_master_stars[-total_star_count:]
     
@@ -213,8 +211,8 @@ def _get_constellations_alg_median_neighbors(config, sorted_master_stars, quadra
     
     constellations = []
     # fun beggins here
-    for const_num in range(0, config.constellation_count):
-        log.debug("Doing constellation %i"%(const_num,))
+    for const_num in range(0, const_count):
+        log.info("Creating constellation %i"%(const_num,))
         
         # pick a random star to start with
         base_star = _get_random_star(selected_all_stars, must_be_master = True)

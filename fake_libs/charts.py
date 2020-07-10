@@ -8,6 +8,7 @@ import random
 from .stars import Star, get_random_stars
 from .quadrant import Quadrant
 from .constellations import get_constellations
+from .dso import get_galaxies, get_open_clusters
 #from svgwrite import pt
 pt = 1
 
@@ -41,12 +42,18 @@ def generate_chart(filename, config):
             _get_chart(dwg, config, quadrant = quadrant, master_stars = master_stars)
         
         quadrants.append(central_quadrant)
-        
+      
     constellations = None
     if config.add_constellations:
         log.info("Writting constellations into the final chart")
         constellations = _add_constellations(dwg, config, master_stars, quadrants)
 
+    if config.add_galaxies:
+        _add_galaxies(dwg, config, central_quadrant)
+        
+    if config.add_open_clusters:
+        _add_open_clusters(dwg, config, central_quadrant)
+        
     # now write the stars here
     log.info("Writting stars into the final chart")
     stars_group = dwg.add(dwg.g(id='stars_group_central'))
@@ -62,8 +69,47 @@ def generate_chart(filename, config):
         _add_constellation_names(dwg, constellations, config)
     
     
-    log.info("Writting file")
+    log.info("Writting file %s"%(filename,))
     dwg.save()
+    
+def _add_galaxies(dwg, config, central_quadrant):
+    log.info("Adding galaxies")
+    galaxies = get_galaxies(config, central_quadrant)
+    
+    galaxies_dwg = dwg.add(dwg.g(id='galaxies', 
+                                 stroke=config.galaxies_stroke_color.get_hex_rgb(), 
+                                 stroke_opacity = config.galaxies_stroke_color.get_float_alpha(),
+                                 stroke_width = config.galaxies_stroke_width,
+                                 fill = config.galaxies_fill_color.get_hex_rgb(),
+                                 fill_opacity = config.galaxies_fill_color.get_float_alpha()))
+    
+    for galaxy in galaxies:
+        rx = galaxy.size
+        ry = galaxy.size * galaxy.params["eccentricity"]
+        galaxies_dwg.add(dwg.ellipse(center=(galaxy.w*pt, galaxy.h*pt), 
+                                     r=(rx*pt, ry*pt),
+                                     # it is necessary to specify the center of rotation, otherwise it seems to use the same center for the whole group
+                                     transform="rotate(%i %i %i)"%(galaxy.params["rotate"], galaxy.w*pt, galaxy.h*pt)))
+        
+    return galaxies
+
+def _add_open_clusters(dwg, config, central_quadrant):
+    log.info("Adding open clusters")
+    open_clusters = get_open_clusters(config, central_quadrant)
+    
+    open_clusters_dwg = dwg.add(dwg.g(id='open_clusters', 
+                                 stroke=config.open_clusters_stroke_color.get_hex_rgb(), 
+                                 stroke_opacity = config.open_clusters_stroke_color.get_float_alpha(),
+                                 stroke_width = config.open_clusters_stroke_width,
+                                 fill = config.open_clusters_fill_color.get_hex_rgb(),
+                                 fill_opacity = config.open_clusters_fill_color.get_float_alpha()))
+    
+    for open_cluster in open_clusters:
+        dash_size = config.open_clusters_stroke_dash_size*pt
+        open_clusters_dwg.add(dwg.circle(center=(open_cluster.w*pt, open_cluster.h*pt), 
+                                     r=open_cluster.size*pt).dasharray([dash_size, dash_size]))
+        
+    return open_clusters
     
 def _add_constellations(dwg, config, master_stars, quadrants):
     log.info("Adding constellations")
