@@ -10,6 +10,7 @@ class LoggerWrapper:
     
     def __init__(self, parent_logger):
         self._parent_logger = parent_logger
+        self._last_method = None
 
     def __getattr__(self, key):
         if key == "debug":
@@ -21,7 +22,14 @@ class LoggerWrapper:
         else:
             sys.stdout.write(colorama.Fore.RESET)
         
-        return getattr(self._parent_logger, key)
+        self._last_method = getattr(self._parent_logger, key)
+        return self._handler
+        
+    def _handler(self, *arg, **kwargs):
+        rv = self._last_method(*arg, **kwargs)
+        self._last_method = None
+        sys.stdout.write(colorama.Fore.RESET)
+        return rv
         
 def init_logger():
     _me = os.path.splitext(os.path.basename(sys.argv[0]))[0]

@@ -124,36 +124,48 @@ def get_galaxies(config, central_quadrant):
     
     return galaxies
 
-def get_open_clusters(config, central_quadrant):
-    if config.open_clusters_random_seed != None:
-        random.seed(config.open_clusters_random_seed)
+def get_clusters(config, central_quadrant, cluster_type):
+    assert cluster_type in (DSO_OPEN_CLUSTER, DSO_GLOBULAR_CLUSTER)
     
-    count = random.randint(*config.open_clusters_count_range)
-    log.info("Adding %i open_clusters into the chart"%(count,))
-    
-    size_delta = config.open_clusters_size_range[1] - config.open_clusters_size_range[0]
-    size_min = config.open_clusters_size_range[0]
+    if cluster_type == DSO_OPEN_CLUSTER:
+        if config.open_clusters_random_seed != None:
+            random.seed(config.open_clusters_random_seed)
+        count = random.randint(*config.open_clusters_count_range)
+        log.info("Adding %i open clusters into the chart"%(count, ))
+        
+        size_delta = config.open_clusters_size_range[1] - config.open_clusters_size_range[0]
+        size_min = config.open_clusters_size_range[0]
+    elif cluster_type == DSO_GLOBULAR_CLUSTER:
+        if config.globular_clusters_random_seed != None:
+            random.seed(config.globular_clusters_random_seed)
+        count = random.randint(*config.globular_clusters_count_range)
+        log.info("Adding %i globular clusters into the chart"%(count, ))
+        
+        size_delta = config.globular_clusters_size_range[1] - config.globular_clusters_size_range[0]
+        size_min = config.globular_clusters_size_range[0]
+    else:
+        raise Exception("Internal error")
     
     max_w = config.box_size.width
     max_h = config.box_size.height
     
-    open_clusters = []
+    clusters = []
     for i in range(0, count):
         size = (random.random() * size_delta ) + size_min
         
         w = random.random()*max_w
         h = random.random()*max_h
         
-        open_cluster = DSO(dso_type = DSO_OPEN_CLUSTER,
+        open_cluster = DSO(dso_type = cluster_type,
                      w = w,
                      h = h,
                      quadrant = central_quadrant,
                      size = size,
                      params = None)
         
-        open_clusters.append(open_cluster)
-        open_clusters.extend(open_cluster.get_copies())
+        clusters.append(open_cluster)
+        clusters.extend(open_cluster.get_copies())
     
-    return open_clusters
+    return clusters
 
         

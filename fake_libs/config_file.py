@@ -23,12 +23,27 @@ class Font:
         self.color = Color(config.get(section, "color").strip())
         self.font_family = config.get(section, "font_family").strip()
         self.size = config.getint(section, "size")
-        
+    
+    def __repr__(self):
+        return "<%s>"%(self.__str__())
+    
+    def __str__(self):
+        return "Font, family: %s, size: %i, color: %s"%(self.font_family, self.size, self.color)
              
 class ConfigFile:
     def __init__(self, filename):
         self._filename = filename
         self._read()
+        self._log()
+
+    def _log(self):
+        attribs = dir(self)
+        attribs.sort()
+        log.debug("Config file values:")
+        for a in attribs:
+            if a.startswith("_") or callable(a): continue
+            n = a + ("."*(max(0, 40 - len(a))))
+            log.debug("%s: %s"%(n, repr(getattr(self, a))))
     
     def _read_int_range(self, config, section, option, l = 2):
         val = [int(v.strip()) for v in config.get(section, option).split(",")]
@@ -58,6 +73,7 @@ class ConfigFile:
         self.add_grid = config.getboolean("main", "add_grid")
         self.add_galaxies = config.getboolean("main", "add_galaxies")
         self.add_open_clusters = config.getboolean("main", "add_open_clusters")
+        self.add_globular_clusters = config.getboolean("main", "add_globular_clusters")
         self.add_constellations = config.getboolean("main", "add_constellations")
         self.add_neighbor_quadrants = config.getboolean("main", "add_neighbor_quadrants")
         
@@ -155,4 +171,21 @@ class ConfigFile:
             self.open_clusters_count_range = self._read_int_range(config, "open_clusters", "count_range")
             # open_clusters_stroke_dash_size
             self.open_clusters_stroke_dash_size = config.getfloat("open_clusters", "stroke_dash_size")
+        
+        # globular clusters parameters
+        if self.add_globular_clusters:
+            # globular_clusters_stroke_width
+            self.globular_clusters_stroke_width = config.getfloat("globular_clusters", "stroke_width")
+            # globular_clusters_stroke_color
+            self.globular_clusters_stroke_color = Color(config.get("globular_clusters", "stroke_color").strip())
+            # globular_clusters_fill_color
+            self.globular_clusters_fill_color = Color(config.get("globular_clusters", "fill_color").strip())
+            #globular_clusters_random_seed
+            self.globular_clusters_random_seed = self._read_int_none(config, "globular_clusters", "random_seed")
+            # globular_clusters_size_range
+            self.globular_clusters_size_range = self._read_float_range(config, "globular_clusters", "size_range")
+            # globular_clusters_count_range
+            self.globular_clusters_count_range = self._read_int_range(config, "globular_clusters", "count_range")
+            # globular_clusters_stroke_dash_size
+            self.globular_clusters_stroke_dash_size = config.getfloat("globular_clusters", "stroke_dash_size")
             

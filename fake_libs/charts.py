@@ -8,7 +8,7 @@ import random
 from .stars import Star, get_random_stars
 from .quadrant import Quadrant
 from .constellations import get_constellations
-from .dso import get_galaxies, get_open_clusters
+from .dso import get_galaxies, get_clusters, DSO_GLOBULAR_CLUSTER, DSO_OPEN_CLUSTER
 #from svgwrite import pt
 pt = 1
 
@@ -21,7 +21,7 @@ def generate_chart(filename, config):
     # Master quadrant
     central_quadrant = None
     if config.add_neighbor_quadrants:
-        central_quadrant = Quadrant(id = "C", config = config, x = 1, y = 1)
+        central_quadrant = Quadrant(id = "C", config = config, x = 0, y = 0)
     master_stars = _get_chart(dwg, config, quadrant = central_quadrant)
     
     if config.add_neighbor_quadrants:
@@ -29,14 +29,14 @@ def generate_chart(filename, config):
         
         quadrants = []
         
-        quadrants.append(Quadrant(id = "E",  config = config, x = 2,  y = 1 ))
-        quadrants.append(Quadrant(id = "SE", config = config, x = 2,  y = 0 ))
-        quadrants.append(Quadrant(id = "S",  config = config, x = 1,  y = 0 ))
-        quadrants.append(Quadrant(id = "SW", config = config, x = 0,  y = 0 ))
-        quadrants.append(Quadrant(id = "W",  config = config, x = 0,  y = 1 ))
-        quadrants.append(Quadrant(id = "NW", config = config, x = 0,  y = 2 ))
-        quadrants.append(Quadrant(id = "N",  config = config, x = 1,  y = 2 ))
-        quadrants.append(Quadrant(id = "NE", config = config, x = 2,  y = 2 ))
+        quadrants.append(Quadrant(id = "E",  config = config, x = 1,   y = 0 ))
+        quadrants.append(Quadrant(id = "SE", config = config, x = 1,   y = -1))
+        quadrants.append(Quadrant(id = "S",  config = config, x = 0,   y = -1))
+        quadrants.append(Quadrant(id = "SW", config = config, x = -1,  y = -1))
+        quadrants.append(Quadrant(id = "W",  config = config, x = -1,  y = 0 ))
+        quadrants.append(Quadrant(id = "NW", config = config, x = -1,  y = 1 ))
+        quadrants.append(Quadrant(id = "N",  config = config, x = 0,   y = 1 ))
+        quadrants.append(Quadrant(id = "NE", config = config, x = 1,   y = 1 ))
         
         for quadrant in quadrants:
             _get_chart(dwg, config, quadrant = quadrant, master_stars = master_stars)
@@ -50,9 +50,12 @@ def generate_chart(filename, config):
 
     if config.add_galaxies:
         _add_galaxies(dwg, config, central_quadrant)
-        
+    
     if config.add_open_clusters:
         _add_open_clusters(dwg, config, central_quadrant)
+        
+    if config.add_globular_clusters:
+        _add_globular_clusters(dwg, config, central_quadrant)
         
     # now write the stars here
     log.info("Writting stars into the final chart")
@@ -95,7 +98,7 @@ def _add_galaxies(dwg, config, central_quadrant):
 
 def _add_open_clusters(dwg, config, central_quadrant):
     log.info("Adding open clusters")
-    open_clusters = get_open_clusters(config, central_quadrant)
+    open_clusters = get_clusters(config, central_quadrant, cluster_type = DSO_OPEN_CLUSTER)
     
     open_clusters_dwg = dwg.add(dwg.g(id='open_clusters', 
                                  stroke=config.open_clusters_stroke_color.get_hex_rgb(), 
@@ -110,6 +113,35 @@ def _add_open_clusters(dwg, config, central_quadrant):
                                      r=open_cluster.size*pt).dasharray([dash_size, dash_size]))
         
     return open_clusters
+    
+def _add_globular_clusters(dwg, config, central_quadrant):
+    log.info("Adding globular clusters")
+    globular_clusters = get_clusters(config, central_quadrant, cluster_type = DSO_GLOBULAR_CLUSTER)
+    
+    globular_clusters_dwg = dwg.add(dwg.g(id='globular_clusters', 
+                                 stroke=config.globular_clusters_stroke_color.get_hex_rgb(), 
+                                 stroke_opacity = config.globular_clusters_stroke_color.get_float_alpha(),
+                                 stroke_width = config.globular_clusters_stroke_width,
+                                 fill = config.globular_clusters_fill_color.get_hex_rgb(),
+                                 fill_opacity = config.globular_clusters_fill_color.get_float_alpha()))
+    
+    for globular_cluster in globular_clusters:
+        cluster_group = globular_clusters_dwg.add(dwg.g(id='globular_cluster_%s'%(globular_cluster.id, ), ))
+        
+        cluster_group.add(dwg.circle(center=(globular_cluster.w*pt, globular_cluster.h*pt), 
+                                     r=globular_cluster.size*0.75*pt))
+        lv_w = globular_cluster.w
+        lv_h_start = globular_cluster.h - globular_cluster.size*0.5
+        lv_h_end   = globular_cluster.h + globular_cluster.size*0.5
+        
+        lh_h = globular_cluster.h
+        lh_w_start = globular_cluster.w - globular_cluster.size*0.5
+        lh_w_end   = globular_cluster.w + globular_cluster.size*0.5
+        
+        cluster_group.add(dwg.line(start=(lv_w, lv_h_start), end=(lv_w, lv_h_end)))
+        cluster_group.add(dwg.line(start=(lh_w_start, lh_h), end=(lh_w_end, lh_h)))
+        
+    return globular_clusters
     
 def _add_constellations(dwg, config, master_stars, quadrants):
     log.info("Adding constellations")

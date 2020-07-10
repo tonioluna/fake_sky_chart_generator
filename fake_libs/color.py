@@ -65,10 +65,13 @@ class Color:
             new_color.set_rgb_val(self.get_hex_rgba())
         return new_color
     
+    def __repr__(self):
+        return "<%s>"%(self.__str__())
+    
     def __str__(self):
         c = ["Color"]
         if self.color_name != None: c.append("%s"%(repr(self.color_name)))
-        if self.has_rgb != None: 
+        if self.has_rgb: 
             c.append("RBGA: %02X%02X%02X%02X"%(self.red, self.green, self.blue, self.alpha))
         else:
             c.append("(RGB[A] not defined")
