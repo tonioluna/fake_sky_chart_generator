@@ -64,6 +64,14 @@ class ConfigFile:
             v = int(v)
         return v
     
+    def _read_file_none(self, config, section, option):
+        v = config.get(section, option).strip().lower()
+        if v == "none":
+            return None
+        v = v.replace("\\", os.path.sep).replace("/", os.path.sep)
+        v = os.path.abspath(os.path.join(os.path.dirname(self._filename), v))
+        return v
+    
     def _read(self):
         config = configparser.ConfigParser()
         log.info("Reading config parameters from %s"%(self._filename,))
@@ -122,6 +130,7 @@ class ConfigFile:
             if self.constellation_name_enable:
                 self.constellation_name_random_seed = self._read_int_none(config, "constellation", "name_random_seed")
                 self.constellation_name_font = Font(config, alias = config.get("constellation", "name_font"))
+                self.constellation_name_custom_source = self._read_file_none(config, "constellation", "name_custom_source")
             
         # grid parameters
         if self.add_grid:

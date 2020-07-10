@@ -86,10 +86,8 @@ class Constellation:
         return (sum(x)/len(x), sum(y)/len(y))
 
 class ConstellationNames:
-    def __init__(self, custom_filename = None):
-        if custom_filename == None:
-            custom_filename = _default_constellation_names_file
-        self._filename = custom_filename
+    def __init__(self, filename = None):
+        self._filename = filename
         self._load()
         self.reset_used_constellation_name()
         
@@ -125,7 +123,7 @@ def get_constellations(config, master_stars, quadrants):
         raise Exception("Internal error, unsupported constellation algorithm: %s"%(config.constellation_algorithm, ))
 
     # name constellations
-    const_names = ConstellationNames()
+    const_names = ConstellationNames(filename = _default_constellation_names_file if config.constellation_name_custom_source == None else config.constellation_name_custom_source)
     if config.constellation_name_random_seed != None:
         random.seed(config.constellation_name_random_seed)
     for const in constellations:
