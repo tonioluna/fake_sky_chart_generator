@@ -56,6 +56,6 @@ def init_logger():
         log.addHandler(ch)
         log.addHandler(fh)
     
-    log = LoggerWrapper(log)
+    #log = LoggerWrapper(log)
     
     return log
