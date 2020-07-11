@@ -31,8 +31,8 @@ class Font:
         return "Font, family: %s, size: %i, color: %s"%(self.font_family, self.size, self.color)
              
 class ConfigFile:
-    def __init__(self, filename):
-        self._filename = filename
+    def __init__(self, filenames):
+        self._filenames = filenames
         self._read()
         self._log()
 
@@ -69,13 +69,13 @@ class ConfigFile:
         if v == "none":
             return None
         v = v.replace("\\", os.path.sep).replace("/", os.path.sep)
-        v = os.path.abspath(os.path.join(os.path.dirname(self._filename), v))
+        v = os.path.abspath(os.path.join(os.path.dirname(self._filenames[0]), v))
         return v
     
     def _read(self):
         config = configparser.ConfigParser()
-        log.info("Reading config parameters from %s"%(self._filename,))
-        config.read(self._filename)
+        log.info("Reading config parameters from %s"%(",".join(self._filenames,)))
+        config.read(self._filenames)
         
         # main parameters
         self.add_grid = config.getboolean("main", "add_grid")

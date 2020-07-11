@@ -17,17 +17,18 @@ def main():
         # Read config file info
         if len(sys.argv) == 1:
             log.info("Using default config file: %s"%(DEFAULT_CFG_FILE,))
-            config_filename = DEFAULT_CFG_FILE
+            config_filenames = [DEFAULT_CFG_FILE]
         else:
             assert len(sys.argv) == 2, "Only one argument is supported, not multiple"
-            config_filename = sys.argv[1]
-            log.info("Using user'defined config file: %s"%(config_filename,))
+            config_filenames = sys.argv[1].split(",")
+            log.info("Using user'defined config files: %s"%(config_filenames,))
         
-        assert os.path.isfile(config_filename), "Config file does not exist: %s"%(config_filename,)
+        for file in config_filenames:
+            assert os.path.isfile(file), "Config file does not exist: %s"%(file,)
         
-        config = ConfigFile(config_filename)
+        config = ConfigFile(config_filenames)
         
-        generate_chart("chart.%s.svg"%(os.path.splitext(os.path.basename(config_filename))[0], ), config)
+        generate_chart("chart.%s.svg"%(os.path.splitext(os.path.basename(config_filenames[0]))[0], ), config)
     
     except Exception as ex:
         log.fatal("Caught top level error: %s"%(ex,))
