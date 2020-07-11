@@ -3,7 +3,7 @@ import configparser
 import collections
 import random
 from .log_stuff import init_logger
-from .constellations import KNOWN_ALGORITHMS
+from .constellation_algorithms.algorithms import KNOWN_ALGORITHMS
 from .color import Color, COLOR_RANDOM_COLOR_INDEX
 import svgwrite
 
