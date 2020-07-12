@@ -15,6 +15,7 @@ class Star:
                  color = None,
                  master_star = None,
                  quadrant = None):
+        self.constellation = None
         self.id = Star._id_next
         Star._id_next += 1
         self._star_db[self.id] = self
@@ -31,6 +32,7 @@ class Star:
             self.childs   = None
             self.master_star.add_child(self)
         else:
+            self.master_star = self
             self.size     = size
             self.w        = w + (0 if self.quadrant == None else self.quadrant.w)
             self.h        = h + (0 if self.quadrant == None else self.quadrant.h)

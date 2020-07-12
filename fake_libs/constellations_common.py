@@ -44,6 +44,7 @@ class Constellation:
     
     def add_star(self, star):
         self.stars.append(star)
+        star.constellation = self
         
     def get_copies(self):
         # need to find out how many extra quadrants are added
@@ -59,7 +60,8 @@ class Constellation:
         assert master_star != None, "Constelation %s does not have any master star"%(self.id)
         
         req_quadrant_copies = []
-        for star in self.stars[1:]:
+        for star in self.stars:
+            if star.id == master_star.id: continue
             rel_quad = master_star.get_rel_quadrant_to_other_star(star)
             if rel_quad != (0, 0) and rel_quad not in req_quadrant_copies:
                 req_quadrant_copies.append(rel_quad)
@@ -117,6 +119,20 @@ class ConstellationNames:
         self._available_constellation_names = []
         self._available_constellation_names.extend(self.constellation_names)
         
+def get_available_stars(stars):
+    av_stars = []
+    for star in stars:
+        if star.taken: continue
+        av_stars.append(star)
+    return av_stars
+        
+def count_available_master_stars(stars):
+    c = 0
+    for s in stars:
+        if s.is_master and not s.taken:
+            c += 1
+    return c
+        
 def get_distances_to_stars(ref_obj, star_list, skip_taken_stars):
     base_star = None
     if isinstance(ref_obj, Star):
@@ -131,7 +147,7 @@ def get_distances_to_stars(ref_obj, star_list, skip_taken_stars):
     
     log.debug("Getting distance measurement to %s"%(ref_obj,))
     distances = {}
-    assert len(star_list) > 0, "no stars to measure distance to"
+    #assert len(star_list) > 0, "no stars to measure distance to"
     for star in star_list:
         if (skip_taken_stars and star.taken) or (base_star != None and star.id == base_star.id): 
             continue
