@@ -4,6 +4,7 @@ import collections
 import random
 from .log_stuff import init_logger
 from .constellation_algorithms.algorithms import KNOWN_ALGORITHMS
+from .constellations_common import KNOWN_NAME_DISPLAY_STYLES
 from .color import Color, COLOR_RANDOM_COLOR_INDEX
 import svgwrite
 
@@ -34,16 +35,29 @@ class ConfigFile:
     def __init__(self, filenames):
         self._filenames = filenames
         self._read()
-        self._log()
+        self.log()
 
-    def _log(self):
+    def log(self, file = None):
         attribs = dir(self)
         attribs.sort()
-        log.debug("Config file values:")
+        lines = []
         for a in attribs:
-            if a.startswith("_") or callable(a): continue
+            if a.startswith("_"): continue
+            attr = getattr(self, a)
+            if callable(attr): continue
             n = a + ("."*(max(0, 40 - len(a))))
-            log.debug("%s: %s"%(n, repr(getattr(self, a))))
+            lines.append("%s: %s"%(n, repr(getattr(self, a))))
+        
+        if file == None:
+            log.debug("Config file values:")
+            for line in lines:
+                log.debug(line)
+        else:
+            log.info("Exporting parameters to %s"%(file,))
+            with open(file, "w") as fh:
+                fh.write("Config file values:\n")
+                for line in lines:
+                    fh.write(line + "\n")
     
     def _read_int_range(self, config, section, option, l = 2):
         val = [int(v.strip()) for v in config.get(section, option).split(",")]
@@ -125,6 +139,9 @@ class ConfigFile:
             # algorithm
             self.constellation_algorithm = config.get("constellation", "algorithm").strip()
             assert self.constellation_algorithm in KNOWN_ALGORITHMS, "Invalid value for constellation.algorithm: %s. Valid: %s"%(self.constellation_algorithm, ", ".join(KNOWN_ALGORITHMS))
+            # name_display_style
+            self.constellation_name_display_style = name = config.get("constellation", "name_display_style").strip()
+            assert self.constellation_name_display_style in KNOWN_NAME_DISPLAY_STYLES, "Invalid value for constellation.name_display_style: %s. Valid: %s"%(self.constellation_name_display_style, ", ".join(KNOWN_NAME_DISPLAY_STYLES))
             
             self.constellation_name_enable = config.getboolean("constellation", "name_enable")
             if self.constellation_name_enable:

@@ -16,7 +16,7 @@ log = init_logger()
 
 def generate_chart(filename, config):
     log.info("Creating chart %s"%(filename,))
-    dwg = svgwrite.Drawing(filename=filename, debug=True)
+    dwg = svgwrite.Drawing(filename=filename, debug=True, size = (config.box_size.width*pt, config.box_size.height*pt))
 
     # Master quadrant
     central_quadrant = None
@@ -178,7 +178,7 @@ def _add_constellation_names(dwg, constellations, config):
         
         if config.constellation_name_enable:
             w, h = constellation.get_mean_position()
-            const_names.add(dwg.text(constellation.name,
+            const_names.add(dwg.text(constellation.get_display_name(),
                                      insert=(w*pt, h*pt),
                                      )
         )

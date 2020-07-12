@@ -33,7 +33,7 @@ def get_constellations(config, sorted_master_stars, quadrants, **kwargs):
         if base_star == None:
             break
         log.debug("base star: %s"%(base_star,))
-        constellation = Constellation(quadrants = quadrants)
+        constellation = Constellation(quadrants = quadrants, name_display_style = config.constellation_name_display_style)
         constellations.append(constellation)
         constellation.add_star(base_star)
         

@@ -5,6 +5,10 @@ __pycache__/
 
 *.svg
 *.png
+*.jpg
+*.gif
+*.tiff
+*.txt
 
 # C extensions
 *.so

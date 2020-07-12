@@ -7,11 +7,19 @@ import os
 
 log = init_logger()
 
+
+NAME_DISPLAY_STYLE_NAME = "name"
+NAME_DISPLAY_STYLE_NAME_ID = "name+id"
+KNOWN_NAME_DISPLAY_STYLES = (NAME_DISPLAY_STYLE_NAME,
+                             NAME_DISPLAY_STYLE_NAME_ID
+                            )
+
 class Constellation:
     _id_next = 0
     
     def __init__(self, 
                  quadrants,
+                 name_display_style,
                  id = None,
                  name = None):
         if id == None:
@@ -22,8 +30,17 @@ class Constellation:
         
         self.name = self.id if name == None else name
         
+        self.name_display_style = name_display_style
+        
         self._quadrants = quadrants
         self.stars = []
+    
+    def get_display_name(self):
+        if self.name_display_style == NAME_DISPLAY_STYLE_NAME:
+            return self.name
+        if self.name_display_style == NAME_DISPLAY_STYLE_NAME_ID:
+            return "%s (%s)"%(self.name, self.id) if self.name != self.id else self.name
+        raise Exception("Not implemented style: %s"%(self.name_display_style, ))
     
     def add_star(self, star):
         self.stars.append(star)
@@ -52,6 +69,7 @@ class Constellation:
         copies = []
         for index, req_quad in enumerate(req_quadrant_copies):
             const_copy = Constellation(quadrants = self._quadrants, 
+                                       name_display_style = self.name_display_style,
                                        id = "%s.%s"%(self.id, index + 1),
                                        name = self.name)
             copies.append(const_copy)

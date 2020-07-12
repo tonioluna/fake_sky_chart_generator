@@ -43,7 +43,7 @@ def init_logger():
         ch.setLevel(logging.INFO)
         filename = _me + ".log"
         with open(filename, "w") as fh:
-            fh.write("Starting on %s running from %s"%(time.ctime(), repr(sys.argv)))
+            fh.write("Starting on %s running from %s\n"%(time.ctime(), repr(sys.argv)))
         fh = logging.FileHandler(filename = filename)
         fh.setLevel(logging.DEBUG)
         
