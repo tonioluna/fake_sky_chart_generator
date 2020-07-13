@@ -110,6 +110,10 @@ class Star:
                                                  self.w,
                                                  self.h, 
                                                  self.size)
+    
+    def __repr__(self):
+        return "<%s>"%(str(self),)
+    
     def get_peers(self):
         if self.is_master:
             peers = [self]
@@ -129,6 +133,15 @@ class Star:
                 child.taken = True
         else:
             self.master_star.take()
+            
+    def untake(self):
+        self.constellation = None
+        if self.is_master:
+            self.taken = False
+            for child in self.childs:
+                child.taken = False
+        else:
+            self.master_star.untake()
             
 def get_random_stars(min_size, 
                      max_size, 

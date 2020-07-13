@@ -12,16 +12,23 @@ from .dso import get_galaxies, get_clusters, DSO_GLOBULAR_CLUSTER, DSO_OPEN_CLUS
 #from svgwrite import pt
 pt = 1
 
+draw_all_quadrants = False
+
 log = init_logger()
 
 def generate_chart(filename, config):
     log.info("Creating chart %s"%(filename,))
-    dwg = svgwrite.Drawing(filename=filename, debug=True, size = (config.box_size.width*pt, config.box_size.height*pt))
+    
+    box_w = config.box_size.width if not draw_all_quadrants else config.box_size.width * 3
+    box_h = config.box_size.height if not draw_all_quadrants else config.box_size.height * 3
+    box_offset = 0 if not draw_all_quadrants else 1
+        
+    dwg = svgwrite.Drawing(filename=filename, debug=True, size = (box_w*pt, box_h*pt))
 
     # Master quadrant
     central_quadrant = None
     if config.add_neighbor_quadrants:
-        central_quadrant = Quadrant(id = "C", config = config, x = 0, y = 0)
+        central_quadrant = Quadrant(id = "C", config = config, x = box_offset + 0, y = box_offset + 0)
     master_stars = _get_chart(dwg, config, quadrant = central_quadrant)
     
     if config.add_neighbor_quadrants:
@@ -29,17 +36,18 @@ def generate_chart(filename, config):
         
         quadrants = []
         
-        quadrants.append(Quadrant(id = "E",  config = config, x = 1,   y = 0 ))
-        quadrants.append(Quadrant(id = "SE", config = config, x = 1,   y = -1))
-        quadrants.append(Quadrant(id = "S",  config = config, x = 0,   y = -1))
-        quadrants.append(Quadrant(id = "SW", config = config, x = -1,  y = -1))
-        quadrants.append(Quadrant(id = "W",  config = config, x = -1,  y = 0 ))
-        quadrants.append(Quadrant(id = "NW", config = config, x = -1,  y = 1 ))
-        quadrants.append(Quadrant(id = "N",  config = config, x = 0,   y = 1 ))
-        quadrants.append(Quadrant(id = "NE", config = config, x = 1,   y = 1 ))
+        quadrants.append(Quadrant(id = "E",  config = config, x = box_offset + 1,   y = box_offset + 0 ))
+        quadrants.append(Quadrant(id = "SE", config = config, x = box_offset + 1,   y = box_offset + -1))
+        quadrants.append(Quadrant(id = "S",  config = config, x = box_offset + 0,   y = box_offset + -1))
+        quadrants.append(Quadrant(id = "SW", config = config, x = box_offset + -1,  y = box_offset + -1))
+        quadrants.append(Quadrant(id = "W",  config = config, x = box_offset + -1,  y = box_offset + 0 ))
+        quadrants.append(Quadrant(id = "NW", config = config, x = box_offset + -1,  y = box_offset + 1 ))
+        quadrants.append(Quadrant(id = "N",  config = config, x = box_offset + 0,   y = box_offset + 1 ))
+        quadrants.append(Quadrant(id = "NE", config = config, x = box_offset + 1,   y = box_offset + 1 ))
         
+        child_stars = []
         for quadrant in quadrants:
-            _get_chart(dwg, config, quadrant = quadrant, master_stars = master_stars)
+            child_stars.extend(_get_chart(dwg, config, quadrant = quadrant, master_stars = master_stars))
         
         quadrants.append(central_quadrant)
       
@@ -60,17 +68,29 @@ def generate_chart(filename, config):
     # now write the stars here
     log.info("Writting stars into the final chart")
     stars_group = dwg.add(dwg.g(id='stars_group_central'))
-    for star in master_stars:
+    draw_stars = []
+    draw_stars.extend(master_stars)
+    if config.add_neighbor_quadrants and draw_all_quadrants:
+        draw_stars.extend(child_stars)
+    
+    for star in draw_stars:
+        if star.constellation == None or star.constellation.custom_color == None:
+            fill = star.color.get_hex_rgb()
+            fill_opacity = star.color.get_float_alpha()
+        else:
+            fill = star.constellation.custom_color.get_hex_rgb()
+            fill_opacity = star.constellation.custom_color.get_float_alpha()
+        
         circle = dwg.circle(center = (star.w*pt, star.h*pt), 
                             r = star.size*pt, 
-                            fill = star.color.get_hex_rgb(),
-                            fill_opacity = star.color.get_float_alpha())
+                            fill = fill,
+                            fill_opacity = fill_opacity,
+                            )
         stars_group.add(circle)
     
     if config.add_constellations:
         log.info("Writting constellation names into the final chart")
         _add_constellation_names(dwg, constellations, config)
-    
     
     log.info("Writting file %s"%(filename,))
     dwg.save()
@@ -206,8 +226,7 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
     
     
     # stars
-    
-    if master_stars == None:
+    if master_stars == None or draw_all_quadrants:
     
         # out box
         out_box = dwg.add(dwg.g(id='out_box', 
@@ -236,6 +255,7 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
             for i in range(0, config.grid_line_count_horizontal):
                 grid.add(dwg.line(start=((sep + sep*i + q_w)*pt, (0 + q_h)*pt), end=((sep + sep*i + q_w)*pt, (config.box_size.height + q_h)*pt)))
         
+    if master_stars == None:
     
         log.info("Adding %i stars to central quadrant %s"%(config.star_count, quadrant))
         min_size = config.star_size_range[0]
@@ -268,7 +288,7 @@ def _get_chart(dwg, config, quadrant = None, master_stars = None):
             #log.debug("%s (out of %s)"%(child_star, master_star))
             #log.debug("w: %i, h: %i"%(w, h))
             
-        
+            
             #circle = dwg.circle(center = (child_star.w, child_star.h), 
             #                    r = child_star.size*pt, 
             #                    fill = child_star.color.get_hex_rgb(),
