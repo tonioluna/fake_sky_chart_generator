@@ -196,15 +196,14 @@ def _add_constellations(dwg, config, master_stars, quadrants):
     return constellations
     
 def _add_constellation_names(dwg, constellations, config):
-    log.warning("Constellation name groups are not working!")
+    const_names = dwg.add(dwg.g(id='constellation_names', 
+                                stroke='none',
+                                fill=config.constellation_name_font.color.get_hex_rgb(),
+                                fill_opacity=config.constellation_name_font.color.get_float_alpha(),
+                                font_size=config.constellation_name_font.size*pt,
+                                font_family=config.constellation_name_font.font_family))
+    
     for constellation in constellations:
-        const_names = dwg.add(dwg.g(id='constellation_names', 
-                                    stroke='none',
-                                    fill=config.constellation_name_font.color.get_hex_rgb(),
-                                    fill_opacity=config.constellation_name_font.color.get_float_alpha(),
-                                    font_size=config.constellation_name_font.size*pt,
-                                    font_family=config.constellation_name_font.font_family))
-        
         if config.constellation_name_enable:
             kwargs = {}
             if constellation.custom_color != None:
