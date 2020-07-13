@@ -155,14 +155,23 @@ def _add_constellations(dwg, config, master_stars, quadrants):
                                        fill = "none"))
     
     for constellation in constellations:
-        const_points = []
-        for star in constellation.stars:
-            const_points.append((star.w, star.h))
-        
-        # TODO: add closed/open check here
-        
-        # Finally, make a polygon with the chosen stars
-        constellations_dwg.add(dwg.polyline(points = const_points))
+        for segment in constellation.segments:
+            const_points = []
+            for star_id in segment.star_ids:
+                star = constellation.star_dict[star_id]
+                const_points.append((star.w, star.h))
+            
+            kwargs = {}
+            
+            if constellation.custom_color != None:
+                kwargs["stroke"] = constellation.custom_color.get_hex_rgb()
+                kwargs["stroke_opacity"] = constellation.custom_color.get_float_alpha()
+            
+            # Finally, make a polygon with the chosen stars
+            if segment.is_closed:
+                constellations_dwg.add(dwg.polygon(points = const_points, **kwargs))
+            else:
+                constellations_dwg.add(dwg.polyline(points = const_points, **kwargs))
         
     return constellations
     
@@ -177,9 +186,15 @@ def _add_constellation_names(dwg, constellations, config):
                                     font_family=config.constellation_name_font.font_family))
         
         if config.constellation_name_enable:
+            kwargs = {}
+            if constellation.custom_color != None:
+                kwargs["fill"] = constellation.custom_color.get_hex_rgb()
+                kwargs["fill_opacity"] = constellation.custom_color.get_float_alpha()
+            
             w, h = constellation.get_mean_position()
             const_names.add(dwg.text(constellation.get_display_name(),
                                      insert=(w*pt, h*pt),
+                                     **kwargs,
                                      )
         )
     

@@ -24,7 +24,7 @@ def _get_args():
                         default=None, help='Export parameters in text format.')
     parser.add_argument('-p', '--convert_to_png', dest='convert_to_png', metavar='<METHOD>',
                         default=None, help='Convert the generated SVG to PNG using the specified method.')
-    parser.add_argument('-r', '--png_resolution', dest='png_resolution', metavar='<int>(dpi)',
+    parser.add_argument('-r', '--png_resolution', dest='png_resolution', metavar='<int>(dpi)', type=int,
                         default=_default_png_resolution, help='DPI resolution for PNG conversion. Default: %(default)s.')
     parser.add_argument('-O', '--open_png', dest='open_png', action="store_true",
                         default=False, help='Open PNG file when done')

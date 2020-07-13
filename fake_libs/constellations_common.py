@@ -4,6 +4,7 @@ import random
 import operator
 import math
 import os
+import collections
 
 log = init_logger()
 
@@ -13,7 +14,8 @@ NAME_DISPLAY_STYLE_NAME_ID = "name+id"
 KNOWN_NAME_DISPLAY_STYLES = (NAME_DISPLAY_STYLE_NAME,
                              NAME_DISPLAY_STYLE_NAME_ID
                             )
-
+Segment = collections.namedtuple("ConstellationSegment", ("star_ids", "is_closed"))
+                            
 class Constellation:
     _id_next = 0
     
@@ -21,7 +23,8 @@ class Constellation:
                  quadrants,
                  name_display_style,
                  id = None,
-                 name = None):
+                 name = None,
+                 custom_color = None):
         if id == None:
             self.id = str(Constellation._id_next)
             Constellation._id_next += 1
@@ -34,6 +37,10 @@ class Constellation:
         
         self._quadrants = quadrants
         self.stars = []
+        self.star_dict = {}
+        self.segments = []
+        self.custom_color = custom_color
+        
     
     def get_display_name(self):
         if self.name_display_style == NAME_DISPLAY_STYLE_NAME:
@@ -43,6 +50,7 @@ class Constellation:
         raise Exception("Not implemented style: %s"%(self.name_display_style, ))
     
     def add_star(self, star):
+        self.star_dict[star.id] = star
         self.stars.append(star)
         star.constellation = self
         
@@ -73,7 +81,9 @@ class Constellation:
             const_copy = Constellation(quadrants = self._quadrants, 
                                        name_display_style = self.name_display_style,
                                        id = "%s.%s"%(self.id, index + 1),
-                                       name = self.name)
+                                       name = self.name,
+                                       custom_color = self.custom_color)
+            star_xlation_dict = {}
             copies.append(const_copy)
             
             for base_star in self.stars:
@@ -82,8 +92,16 @@ class Constellation:
                 for peer_star in star_peers:
                     if peer_star.get_rel_quadrant_to_other_star(base_star) == req_quad:
                         const_copy.add_star(peer_star)
+                        star_xlation_dict[base_star.id] = peer_star.id
                         break
-            
+        
+            # Finally, copy the segments
+            for segment in self.segments:
+                copy_stars = []
+                for star_id in segment.star_ids:
+                    copy_stars.append(star_xlation_dict[star_id])
+                const_copy.draw_segment(copy_stars, segment.is_closed)
+
         return copies
         
     def get_mean_position(self):
@@ -96,6 +114,13 @@ class Constellation:
         
         return (sum(x)/len(x), sum(y)/len(y))
 
+    def draw_segment(self, star_ids, is_closed):
+        segment = []
+        for star_id in star_ids:
+            assert star_id in self.star_dict, "Star %s is not part of this constellation"%(star_id,)
+            segment.append(star_id)
+        self.segments.append(Segment(star_ids, is_closed))
+        
 class ConstellationNames:
     def __init__(self, filename = None):
         self._filename = filename
@@ -144,15 +169,14 @@ def get_distances_to_stars(ref_obj, star_list, skip_taken_stars):
     else:
         raise Exception("Can't get distance to object type %s"%(type(ref_obj)))
     
-    
-    log.debug("Getting distance measurement to %s"%(ref_obj,))
+    #log.debug("Getting distance measurement to %s"%(ref_obj,))
     distances = {}
     #assert len(star_list) > 0, "no stars to measure distance to"
     for star in star_list:
         if (skip_taken_stars and star.taken) or (base_star != None and star.id == base_star.id): 
             continue
         d = math.sqrt((ref_w - star.w)**2 + (ref_h - star.h)**2)
-        log.debug("d = %.3f for %s"%(d, star))
+        #log.debug("d = %.3f for %s"%(d, star))
         if d not in distances:
             distances[d] = []
         distances[d].append(star)

@@ -11,6 +11,17 @@ _re_rgb_color = re.compile("^#(?P<red>[0-9a-fA-F]{2})"
                              "(?P<blue>[0-9a-fA-F]{2})"
                              "(?P<alpha>[0-9a-fA-F]{2})?$")
 
+debug_colors = ("#FF0000FF",
+                "#00FF00FF",
+                "#0000FFFF",
+                "#FF8000FF",
+                "#FF0080FF",
+                "#80FF00FF",
+                "#00FF80FF",
+                "#8000FFFF",
+                "#0080FFFF",
+                )
+                             
 class Color:
     def __init__(self, color_txt):
         self._color_txt = color_txt

@@ -1,12 +1,17 @@
 from ..log_stuff import init_logger
+from ..color import  Color, debug_colors
 from ..constellations_common import *
 import math
 import operator
 import random
 
+add_debug_colors = False
+debug_color_index = 0
+
 log = init_logger()
 
 def get_constellations(config, sorted_master_stars, quadrants, **kwargs):
+    global debug_color_index
         
     # Determine the number of stars to use per constellation
     star_counts = []
@@ -25,9 +30,10 @@ def get_constellations(config, sorted_master_stars, quadrants, **kwargs):
         all_available_stars.append(ms)
         all_available_stars.extend(ms.childs)
         
-    #for star in all_available_stars:
-    #    star.color.set_rgb_val("#00FF00FF")
-    #    star.size = config.star_size_range[1]
+    if add_debug_colors:
+        for star in all_available_stars:
+            star.color.set_rgb_val("#00FF00FF")
+            star.size = config.star_size_range[1]
     
     available_stars = all_available_stars
     
@@ -77,6 +83,10 @@ def get_constellations(config, sorted_master_stars, quadrants, **kwargs):
         constellation = Constellation(quadrants = quadrants, name_display_style = config.constellation_name_display_style)
         constellations.append(constellation)
         constellation.add_star(base_star)
+        
+        if add_debug_colors:
+            constellation.custom_color = Color(debug_colors[debug_color_index])
+            debug_color_index = (debug_color_index + 1) % len(debug_colors)
         
         while len(constellation.stars) < star_counts[const_num]:
             # Calculate the distances to the rest of stars
@@ -128,6 +138,10 @@ def get_constellations(config, sorted_master_stars, quadrants, **kwargs):
             star.tag = angle
     
         # Sort the stars by angle
-        constellation.stars = list(sorted(constellation.stars, key=operator.attrgetter('tag')))
+        star_ids = []
+        for star in sorted(constellation.stars, key=operator.attrgetter('tag')):
+            star_ids.append(star.id)
+        
+        constellation.draw_segment(star_ids, is_closed = True if random.randint(0,1) == 0 else False)
     
     return constellations
