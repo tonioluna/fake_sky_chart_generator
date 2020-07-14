@@ -3,7 +3,8 @@ Torta Menor
 Taco
 Minerva
 Agave
-Chapata
+Chapala
+Tequila
 Tamal
 Pozole Chico
 Pozole Grande
@@ -14,3 +15,4 @@ Birote
 La Via
 Chiva
 Lonche
+Rio del Sol

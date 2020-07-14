@@ -41,6 +41,8 @@ class Constellation:
         self.segments = []
         self.custom_color = custom_color
         
+    def __str__(self):
+        return "Constellation %s%s (%i stars)"%(self.id, "" if (self.name == None or self.id == self.name) else (" (%s)"%(self.name)), len(self.stars))
     
     def get_display_name(self):
         if self.name_display_style == NAME_DISPLAY_STYLE_NAME:
@@ -184,6 +186,9 @@ def get_distances_to_stars(ref_obj, star_list, skip_taken_stars):
     #assert len(distances) > 0, "no stars meet criteria to measure distance to from %i provide stars"%(len(star_list))
     
     return distances
+        
+def get_distance_star_to_star(star_a, star_b):
+    return math.sqrt((star_a.w - star_b.w)**2 + (star_a.h - star_b.h)**2)
         
 def get_random_star(star_list, must_be_master = False):
     # make a list of stars which are still available
