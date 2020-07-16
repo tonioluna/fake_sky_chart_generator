@@ -213,6 +213,7 @@ def _add_constellation_names(dwg, constellations, config):
             w, h = constellation.get_mean_position()
             const_names.add(dwg.text(constellation.get_display_name(),
                                      insert=(w*pt, h*pt),
+                                     text_anchor="middle",
                                      **kwargs,
                                      )
         )

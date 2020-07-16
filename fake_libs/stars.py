@@ -1,6 +1,6 @@
 import random
 from .log_stuff import init_logger
-from .color import COLOR_RANDOM_COLOR_INDEX
+from .color import COLORS_FROM_START_INDEX
 
 log = init_logger()
 
@@ -45,60 +45,8 @@ class Star:
         
         
     def set_color_index(self, color_index):
-        # color_index <-0.4,+2.0> 
-        assert type(color_index) in (int, float)
-        ci = float(color_index)
-        if (ci < -0.4): 
-            ci = -0.4 
-        if (ci > 2.0):
-            ci =  2.0
-        # R
-        if (( ci >= -0.40 ) and ( ci < 0.00 )):
-            t = (ci + 0.40) / (0.00 + 0.40)
-            r = 0.61 + (0.11 * t) + ( 0.1 * t * t)
-        elif ((ci >= 0.00 ) and ( ci < 0.40)):
-            t = (ci - 0.00) / (0.40 - 0.00)
-            r = 0.83 + (0.17 * t)
-        elif ((ci >= 0.40 ) and ( ci <= 2.10)):
-            t = (ci - 0.40) / (2.10 - 0.40)
-            r = 1.00
-        #G
-        if (( ci >= -0.40 ) and ( ci < 0.00 )):
-            t = (ci + 0.40) / (0.00 + 0.40)
-            g = 0.70 + (0.07 * t) + (0.1 * t * t )
-        elif (( ci >= 0.00) and ( ci < 0.40)):
-            t = (ci - 0.00) / (0.40 - 0.00)
-            g = 0.87 + (0.11 * t)
-        elif (( ci >= 0.40) and ( ci < 1.60)):
-            t = (ci - 0.40) / (1.60 - 0.40)
-            g = 0.98 - (0.16 * t)
-        elif (( ci >= 1.60 ) and ( ci <= 2.00)):
-            t = (ci - 1.60) / (2.00 - 1.60)
-            g = 0.82 - (0.5 * t * t)
-        # B     
-        if (( ci >= -0.40) and ( ci < 0.40)):
-            t = (ci + 0.40) /(0.40 + 0.40)
-            b = 1.00
-        elif (( ci >= 0.40) and ( ci <1.50)):
-            t = (ci - 0.40) / (1.50 - 0.40)
-            b = 1.00 - (0.47 * t) + (0.1 * t * t )
-        elif (( ci >= 1.50) and ( ci <=1.94)):
-            t = (ci - 1.50) / (1.94 - 1.50)
-            b = 0.63 - (0.6 * t * t )
-        else:
-            b = 0
-        #return (r, g, b)
-        color = "#%02X%02X%02X"%(int(r*255),
-                                 int(g*255),
-                                 int(b*255))
-        
-        #log.debug("Setting color index for star %s to %.2f resulting in %s")
-        
-        self.color.set_rgb_val(color)
-          
-        #print color
-        return color
-
+        self.color.set_star_color_index(color_index)
+        return self.color.get_hex_rgb()
         
     def get_rel_quadrant_to_other_star(self, other_star):
         return (self.quadrant.x - other_star.quadrant.x, self.quadrant.y - other_star.quadrant.y)
@@ -175,7 +123,7 @@ def get_random_stars(min_size,
     
     # Split the process in two loops to keep the random behavior for the same seed when random colors are enabled            
     for star in generated_stars:
-        if star.color.color_name == COLOR_RANDOM_COLOR_INDEX:
+        if star.color.color_name in COLORS_FROM_START_INDEX:
             star.set_color_index(_get_random_color_index())
     return generated_stars
             
